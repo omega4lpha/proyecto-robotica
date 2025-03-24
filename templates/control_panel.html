@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold mb-6">Panel de Control de Sensores</h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for device in devices %}
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <img src="{{ url_for('static', filename='images/sensor_icon.png') }}" alt="Sensor Icon" class="w-16 h-16 mx-auto mb-4">
+                <h2 class="text-xl font-semibold text-center">{{ device.id }}</h2>
+                <p class="text-gray-600 text-center">Estado: <span id="state-{{ device.id }}">{{ device.state }}</span></p>
+                <div class="mt-4 flex justify-center">
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-{{ device.id }}" {% if device.state == 'on' %}checked{% endif %} onchange="updateState('{{ device.id }}')">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        function updateState(deviceId) {
+            const checkbox = document.getElementById(`toggle-${deviceId}`);
+            const newState = checkbox.checked ? 'on' : 'off';
+
+            // Enviar el nuevo estado al servidor
+            fetch(`/api/device/${deviceId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ state: newState }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Actualizar el estado en la interfaz
+                    document.getElementById(`state-${deviceId}`).textContent = newState;
+                } else {
+                    alert('Error al actualizar el estado');
+                    checkbox.checked = !checkbox.checked;  // Revertir el cambio
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al actualizar el estado');
+                checkbox.checked = !checkbox.checked;  // Revertir el cambio
+            });
+        }
+    </script>
+</body>
+</html>
