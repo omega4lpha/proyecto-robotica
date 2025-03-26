@@ -1,4 +1,4 @@
-from flask import jsonify, request, render_template
+from flask import jsonify, request, render_template, redirect, url_for
 from app.database import create_connection
 from app.models import upsert_device, get_device, get_all_devices
 
@@ -64,3 +64,59 @@ def init_routes(app):
             return render_template('control_panel.html', devices=devices)
         else:
             return "Error de base de datos", 500
+        
+        # Añade estas rutas adicionales
+    @app.route('/devices/create', methods=['GET'])
+    def create_device_form():
+        return render_template('create_device.html')
+
+    @app.route('/devices/create', methods=['POST'])
+    def create_device():
+        device_id = request.form.get('device_id')
+        value = float(request.form.get('value'))
+        state = request.form.get('state', 'off')  # Default to 'off' if not provided
+        
+        conn = create_connection(app.config['DATABASE'])
+        if conn is not None:
+            upsert_device(conn, {"id": device_id, "value": value, "state": state})
+            return redirect(url_for('control_panel'))
+        return "Error de base de datos", 500
+
+    @app.route('/devices/edit/<string:device_id>', methods=['GET'])
+    def edit_device_form(device_id):
+        conn = create_connection(app.config['DATABASE'])
+        if conn is not None:
+            device = get_device(conn, device_id)
+            if device:
+                return render_template('edit_device.html', device=device)
+        return "Dispositivo no encontrado", 404
+
+    @app.route('/devices/edit/<string:device_id>', methods=['POST'])
+    def edit_device(device_id):
+        value = float(request.form.get('value'))
+        state = request.form.get('state', 'off')
+        
+        conn = create_connection(app.config['DATABASE'])
+        if conn is not None:
+            upsert_device(conn, {"id": device_id, "value": value, "state": state})
+            return redirect(url_for('control_panel'))
+        return "Error de base de datos", 500
+
+    @app.route('/devices/delete/<string:device_id>', methods=['GET'])
+    def delete_device_form(device_id):
+        conn = create_connection(app.config['DATABASE'])
+        if conn is not None:
+            device = get_device(conn, device_id)
+            if device:
+                return render_template('delete_device.html', device=device)
+        return "Dispositivo no encontrado", 404
+
+    @app.route('/devices/delete/<string:device_id>', methods=['POST'])
+    def delete_device(device_id):
+        conn = create_connection(app.config['DATABASE'])
+        if conn is not None:
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM devices WHERE id = ?', (device_id,))
+            conn.commit()
+            return redirect(url_for('control_panel'))
+        return "Error de base de datos", 500

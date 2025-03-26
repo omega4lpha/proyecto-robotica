@@ -45,6 +45,34 @@
         input:checked + .slider:before {
             transform: translateX(26px);
         }
+        .action-buttons {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+        .action-btn {
+            flex: 1;
+            padding: 0.5rem;
+            text-align: center;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .edit-btn {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .edit-btn:hover {
+            background-color: #2563eb;
+        }
+        .delete-btn {
+            background-color: #ef4444;
+            color: white;
+        }
+        .delete-btn:hover {
+            background-color: #dc2626;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -56,11 +84,21 @@
                 <img src="{{ url_for('static', filename='images/sensor_icon.png') }}" alt="Sensor Icon" class="w-16 h-16 mx-auto mb-4">
                 <h2 class="text-xl font-semibold text-center">{{ device.id }}</h2>
                 <p class="text-gray-600 text-center">Estado: <span id="state-{{ device.id }}">{{ device.state }}</span></p>
+                <p class="text-gray-600 text-center">Valor: <span id="state-{{ device.id }}">{{ device.value }}</span></p>
                 <div class="mt-4 flex justify-center">
                     <label class="switch">
                         <input type="checkbox" id="toggle-{{ device.id }}" {% if device.state == 'on' %}checked{% endif %} onchange="updateState('{{ device.id }}')">
                         <span class="slider"></span>
                     </label>
+                </div>
+                
+                <!-- Botones de acción añadidos aquí -->
+                <div class="action-buttons">
+                    <a href="/devices/edit/{{ device.id }}" class="action-btn edit-btn">Editar</a>
+                    <form action="/devices/delete/{{ device.id }}" method="POST" 
+                        onsubmit="return confirmDelete('{{ device.id }}')">
+                        <button type="submit" class="action-btn delete-btn w-full">Eliminar</button>
+                    </form>
                 </div>
             </div>
             {% endfor %}
@@ -95,6 +133,12 @@
                 alert('Error al actualizar el estado');
                 checkbox.checked = !checkbox.checked;  // Revertir el cambio
             });
+        }
+    </script>
+
+    <script>
+        function confirmDelete(deviceId) {
+            return confirm(`¿Estás SEGURO que quieres eliminar el sensor ${deviceId}?\nEsta acción no se puede deshacer.`);
         }
     </script>
 </body>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eliminar Sensor</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
+            <h1 class="text-2xl font-bold mb-6 text-center">Eliminar Sensor</h1>
+            
+            <div class="text-center mb-6">
+                <img src="{{ url_for('static', filename='images/sensor_icon.png') }}" alt="Sensor Icon" class="w-16 h-16 mx-auto mb-4">
+                <p class="text-lg">¿Estás seguro que deseas eliminar el sensor <strong>{{ device.id }}</strong>?</p>
+                <p class="text-gray-600">Esta acción no se puede deshacer.</p>
+            </div>
+            
+            <form action="/devices/delete/{{ device.id }}" method="POST" class="space-y-4">
+                <div class="flex space-x-4">
+                    <button type="submit" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md">
+                        Sí, Eliminar
+                    </button>
+                    <a href="/control" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md text-center">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
